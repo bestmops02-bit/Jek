@@ -1,5 +1,5 @@
 -- ============================================================
--- WOHYYHUB PREMIUM (Плавное перетаскивание иконки)
+-- WOHYYHUB PREMIUM (Smooth & Fixed)
 -- ============================================================
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -284,7 +284,7 @@ aimActionBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- ПЛАВНОЕ ПЕРЕТАСКИВАНИЕ (Без рывков)
+-- Плавное перетаскивание
 local isLocked = false
 local isDragging = false
 local dragInput = nil
@@ -300,7 +300,6 @@ spaceBtn.InputBegan:Connect(function(input)
         dragStartPos = input.Position
         btnStartPos = spaceBtn.AbsolutePosition
         
-        -- Двойной тап (фиксация)
         if tick() - lastTap < 0.3 then
             isLocked = not isLocked
             lockIcon.Text = isLocked and "🔒" or ""
@@ -308,13 +307,11 @@ spaceBtn.InputBegan:Connect(function(input)
         end
         lastTap = tick()
 
-        -- Отслеживаем движение ввода
         dragInput = input.Changed:Connect(function()
             if input.UserInputState == Enum.UserInputState.End then
                 isDragging = false
                 if dragInput then dragInput:Disconnect() end
                 
-                -- Если не сдвинули - это клик
                 if not moved then
                     State.AimBot = not State.AimBot
                     if State.AimBot then
@@ -334,15 +331,14 @@ spaceBtn.InputChanged:Connect(function(input)
     if not isDragging or isLocked then return
     if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseMovement then
         local delta = input.Position - dragStartPos
-        if delta.Magnitude > 3 then moved = true end -- Если сдвинули больше 3 пикселей, это уже свайп
+        if delta.Magnitude > 3 then moved = true end
         
-        -- Плавно перемещаем кнопку строго за пальцем
         spaceBtn.Position = UDim2.new(0, btnStartPos.X + delta.X, 0, btnStartPos.Y + delta.Y)
     end
 end)
 
 -- ============================================================
--- 4. ЛОГИКА ESP + AIMBOT
+-- 4. ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК И FAB
 -- ============================================================
 local function setTabActive(activeBtn, inactiveBtn)
     activeBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
@@ -397,7 +393,9 @@ fab.MouseButton1Click:Connect(function()
     end
 end)
 
--- ESP (без изменений, вынес для чистоты)
+-- ============================================================
+-- 5. ESP И AIMBOT ЛОГИКА
+-- ============================================================
 local Bones = {
     {"Head", "UpperTorso"}, {"UpperTorso", "LowerTorso"},
     {"UpperTorso", "LeftUpperArm"}, {"LeftUpperArm", "LeftLowerArm"},
@@ -406,6 +404,7 @@ local Bones = {
     {"LowerTorso", "RightUpperLeg"}, {"RightUpperLeg", "RightLowerLeg"}
 }
 local BoxEdges = {{1,2},{2,3},{3,4},{4,1},{5,6},{6,7},{7,8},{8,5},{1,5},{2,6},{3,7},{4,8}}
+
 local function CreateLine()
     local l = Drawing.new("Line")
     l.Thickness = 1
@@ -413,6 +412,7 @@ local function CreateLine()
     l.Visible = false
     return l
 end
+
 local function CreateText(size, center)
     local t = Drawing.new("Text")
     t.Size = size
@@ -423,6 +423,7 @@ local function CreateText(size, center)
     t.Visible = false
     return t
 end
+
 local ESP_Cache = {}
 local function SetupPlayer(plr)
     if plr == player then return end
@@ -431,6 +432,7 @@ local function SetupPlayer(plr)
     for i = 1, 12 do data.Box[i] = CreateLine() end
     ESP_Cache[plr] = data
 end
+
 for _, plr in ipairs(Players:GetPlayers()) do SetupPlayer(plr) end
 Players.PlayerAdded:Connect(SetupPlayer)
 Players.PlayerRemoving:Connect(function(plr)
